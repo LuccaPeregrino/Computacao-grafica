@@ -240,7 +240,7 @@ void Special_Function(int key, int x, int y)
 }
 
 //-----------------------------------------------------------------
-void Move_Esfera(void)
+/*void Move_Esfera(void)
 {
 	GLint mapa_x, mapa_z;
 	
@@ -387,7 +387,7 @@ void Move_Esfera(void)
 	while( (GetTickCount() - inicio_clock) < 25) ; 
 
  glutPostRedisplay();
-}
+}*/
 
 //-----------------------------------------------------------------
 
