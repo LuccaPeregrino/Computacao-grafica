@@ -42,8 +42,6 @@ GLint angulo=0;
 GLint wire = 0;
 
 
-ESFERA g_esfera;
-
 /*labirinto */
 GLint mapa[25][25] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                        1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,
@@ -72,6 +70,8 @@ GLint mapa[25][25] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		               1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
 //FUNCOES--------------------------------------------
+
+//Confere as posições da matriz principal, analisando onde pode andar ou não
 int pode_mover(float pos_x, float pos_z, float vet_x, float vet_z)
 {
 	float mundo_x = pos_x + vet_x ;
@@ -86,7 +86,7 @@ int pode_mover(float pos_x, float pos_z, float vet_x, float vet_z)
 
 
 //---------------------------------------------------------------
-unsigned GetTickCount()
+unsigned GetTickCount()//mede o tempo
 {
         struct timeval tv;
         if(gettimeofday(&tv, NULL) != 0)
@@ -95,6 +95,7 @@ unsigned GetTickCount()
         return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
 //---------------------------------------------------------------
+
 void display(void)
 {
 	int x, z;
@@ -112,30 +113,19 @@ void display(void)
 
 	glBegin ( GL_QUADS);
 
-	 glVertex3f(-10000, -TAM_BLOCO/2, -10000);
- 	 glVertex3f(-10000, -TAM_BLOCO/2, 10000);
-	 glVertex3f(10000, -TAM_BLOCO/2, 10000);
-	 glVertex3f(10000, -TAM_BLOCO/2, -10000);
+	 glVertex3f(-10000, -TAM_BLOCO/2, -10000);//Desenhando o piso
+ 	 glVertex3f(-10000, -TAM_BLOCO/2, 10000);//Desenhando o piso
+	 glVertex3f(10000, -TAM_BLOCO/2, 10000);//Desenhando o piso
+	 glVertex3f(10000, -TAM_BLOCO/2, -10000);//Desenhando o piso
 
   	glEnd();
 
  	glPopMatrix();
 
- //desenha esfera
- /*glPushMatrix();
-
-  glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_vermelho);
-  glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-  glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-
-  glTranslatef(g_esfera.x_pos, 5 ,g_esfera.z_pos);
-
-  glutSolidSphere(20,20,16);
-*/
- //glPopMatrix();
-
-
-  for(x=0; x < 25; x++)
+	
+//Rasterização de todo o ambiente, incluindo a aplicação de cores e "iluminação"
+  
+	for(x=0; x < 25; x++)
   {
 	for(z=0; z < 25; z++)
 	{
@@ -153,8 +143,8 @@ void display(void)
 		
 		 glTranslatef(x_mun, 5 ,z_mun);
 
-		 if(wire) glutWireCube(TAM_BLOCO);
-		 else glutSolidCube(TAM_BLOCO);
+		 if(wire) glutWireCube(TAM_BLOCO);//Rasteriza a armação de um cubo('w')
+		 else glutSolidCube(TAM_BLOCO);//Rasteriza um cubo solido(padrão)
 			
 		glPopMatrix();
 
@@ -167,15 +157,15 @@ void display(void)
 
 //-----------------------------------------------------------------
 
-void Keyboard_Function(unsigned char key, int x, int y)
+void Keyboard_Function(unsigned char key, int x, int y)//tratamento de teclas comuns do teclado(esc, w)
 {
  switch (key) 
  {
   
   case  27: exit(0);break; //ESC -> encerra aplicativo... 
-  case 'w':
-  case 'W': wire =!wire;
-			glutPostRedisplay();
+  case 'w'://transforma o labirinto solido em um labirinto aramizado
+  case 'W': wire =!wire;//transforma o labirinto solido em um labirinto aramizado
+  		glutPostRedisplay();//transforma o labirinto solido em um labirinto aramizado
 			break;
  }
 
@@ -183,7 +173,7 @@ void Keyboard_Function(unsigned char key, int x, int y)
 
 //-----------------------------------------------------------------
 
-void Special_Function(int key, int x, int y)
+void Special_Function(int key, int x, int y)//tratamento de teclas epeciais(setas up, down, left, right)
 {
  float rad;
  
@@ -240,156 +230,7 @@ void Special_Function(int key, int x, int y)
 }
 
 //-----------------------------------------------------------------
-/*void Move_Esfera(void)
-{
-	GLint mapa_x, mapa_z;
-	
-	GLint frente, esquerda, direita;
-	GLint num_rnd, dir_tmp;
 
-	unsigned int inicio_clock ;
-	
-	inicio_clock = GetTickCount() ;
-
-
-	switch(g_esfera.dir)
-	{
-		case NORTE : g_esfera.z_pos -= PASSO; break;
-		case LESTE : g_esfera.x_pos += PASSO; break;
-		case SUL   : g_esfera.z_pos += PASSO; break;
-		case OESTE : g_esfera.x_pos -= PASSO; break;
-	}
-
-	
-	if( (g_esfera.x_pos % TAM_BLOCO == 0) &&
-		(g_esfera.z_pos % TAM_BLOCO == 0) )
-	{
-		frente = 0;
-		esquerda = 0;
-		direita = 0;
-
-		mapa_x = (int) ((g_esfera.x_pos + TAM_BLOCO/2) / TAM_BLOCO);
-		mapa_z = (int) ((g_esfera.z_pos + TAM_BLOCO/2) / TAM_BLOCO);
-		
-		switch(g_esfera.dir )
-			{
-				case NORTE :  if(mapa[mapa_x][mapa_z - 1] == 0)
-							  {
-								  frente = 1;
-							  }
-							  if(mapa[mapa_x + 1][mapa_z] == 0)
-							  {
-								  direita = 1;
-							  }
-							  if(mapa[mapa_x - 1][mapa_z] == 0)
-							  {
-								  esquerda = 1;
-							  }
-
-							  break;
-
-				case LESTE :  if(mapa[mapa_x + 1][mapa_z] == 0)
-							  {
-								  frente = 1;
-							  }
-							  if(mapa[mapa_x][mapa_z + 1] == 0)
-							  {
-								  direita = 1;
-							  }
-							  if(mapa[mapa_x][mapa_z - 1] == 0)
-							  {
-								  esquerda = 1;
-							  }
-							  break;
-
-				case SUL   :  if(mapa[mapa_x][mapa_z + 1] == 0)
-							  {
-								  frente = 1;
-							  }
-							  if(mapa[mapa_x - 1][mapa_z] == 0)
-							  {
-								  direita = 1;
-							  }
-							  if(mapa[mapa_x + 1][mapa_z] == 0)
-							  {
-								  esquerda = 1;
-							  }
-
-							  break;
-
-				case OESTE :  if(mapa[mapa_x - 1][mapa_z] == 0)
-							  {
-								  frente = 1;
-							  }
-							  if(mapa[mapa_x][mapa_z - 1] == 0)
-							  {
-								  direita = 1;
-							  }
-							  if(mapa[mapa_x][mapa_z + 1] == 0)
-							  {
-								  esquerda = 1;
-							  }
-							  break;
-			}
-
-
-		dir_tmp = g_esfera.dir;
-
-
-		if(frente)
-		{
-			if(esquerda && direita)
-			{
-				num_rnd = rand() % 10;
-				
-				if(num_rnd < 4) g_esfera.dir = dir_tmp;
-				else if(num_rnd > 6) g_esfera.dir = (dir_tmp + 1) & 3;
-				else g_esfera.dir = (dir_tmp - 1) & 3;
-			}
-			else 
-			if(esquerda) 
-			{
-				if(!(rand()%2)) g_esfera.dir = dir_tmp ;
-				else g_esfera.dir = (dir_tmp - 1) & 3;
-			}
-			else
-			if(direita)
-			{
-				if(!(rand()%2)) g_esfera.dir = dir_tmp ;
-				else g_esfera.dir = (dir_tmp + 1) & 3;
-			}
-			else  g_esfera.dir = dir_tmp ;
-		}
-		else
-		{
-			if(esquerda && direita)
-			{
-				if(!(rand()%2)) g_esfera.dir = (dir_tmp + 1) & 3;
-				else g_esfera.dir = (dir_tmp - 1) & 3;
-			}
-			else 
-			if(esquerda) 
-			{
-				g_esfera.dir = (dir_tmp - 1) & 3;
-			}
-			else
-			if(direita)
-			{
-				g_esfera.dir = (dir_tmp + 1) & 3;
-			}
-			else  g_esfera.dir = (dir_tmp + 2) & 3 ;
-		}
-
-	}
-
-
-	//esperar um pouco nos computadores mais rapidos
-	while( (GetTickCount() - inicio_clock) < 25) ; 
-
- glutPostRedisplay();
-}*/
-
-//-----------------------------------------------------------------
 
 void Inicializa(void)
 {
@@ -424,12 +265,7 @@ void Inicializa(void)
 
  // inicializa numeros aleatorios
  srand(GetTickCount());
-/*
- //posicao inicial da esfera
-g_esfera.x_pos = 3 * TAM_BLOCO;
-g_esfera.z_pos = TAM_BLOCO;
-g_esfera.dir = LESTE;
-*/ 
+
 }
 
 //---------------------------------------------------------------
