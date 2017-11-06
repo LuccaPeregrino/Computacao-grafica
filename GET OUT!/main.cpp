@@ -1,3 +1,11 @@
+#include <GL/gl.h>
+#include <GL/glut.h>
+#include <iostream>
+#include <math.h>
+#include <sys/time.h>
+#include<stdio.h>
+#include<stdlib.h>
+
 //DEFINES--------------------------------------------
 
 #define TAM_BLOCO 100
@@ -22,19 +30,15 @@ GLfloat luz_branca[] = {1.0,1.0,1.0,1.0};
 GLfloat lmodel_ambient[] = {0.6,0.6,0.6,1.0};
 
 
-GLfloat jog_x= 500, jog_z=0;
+GLfloat jog_x= 500, jog_z= -TAM_BLOCO ;
 GLfloat mov_x=PASSO, mov_z=0;
 GLint angulo=0;
 GLint wire = 0;
 GLint inicia = 0;
-GLuint texture; 
+GLint LookX = 0;
+GLint LookZ = 0;
 
-int id = 0;
-glGenTextures(1, &id);
-glBindTexture(GL_TEXTURE_2D, id);
-lTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData); 
-texture_id[];
-texture_id[0] = 1;
+
 
 
 
@@ -66,7 +70,6 @@ GLint mapa[26][26] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 		       1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
                      };
-
 //FUNCOES--------------------------------------------
 int pode_mover(float pos_x, float pos_z, float vet_x, float vet_z)
 {
@@ -120,37 +123,46 @@ void display(void)
         glLoadIdentity();// Carrega a identidade
 
         gluLookAt(jog_x,25,jog_z, jog_x+mov_x,25,jog_z+mov_z, 0,1,0); // (visão do personagem)
+	// Coordenadas X e Y que a camera tá após se mover.	
+	LookX = (int) (jog_x+mov_x);
+	LookZ = (int) (jog_z+mov_z);
 
-        glPushMatrix(); //
+	printf("X = %d\n", LookX);
+	printf("Z = %d\n", LookZ);
+        
+	glPushMatrix(); //
 
         glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_verde);
-	
-	
-	glEnable( GL_TEXTURE_2D ); 
-	glBindTexture (GL_TEXTURE_2D, 1);
 
         glBegin ( GL_QUADS);
 
-	glTexCoord2f(0.0, 0.0);         
-	glVertex3f(-10000, -TAM_BLOCO/2, -10000);
-	glTexCoord2f(0.0, 1.0); 
+        glVertex3f(-10000, -TAM_BLOCO/2, -10000);
         glVertex3f(-10000, -TAM_BLOCO/2, 10000);
-	glTexCoord2f(1.0, 1.0); 
         glVertex3f(10000, -TAM_BLOCO/2, 10000);
-	glTexCoord2f(1.0, 0.0); 
         glVertex3f(10000, -TAM_BLOCO/2, -10000);
 
         glEnd();
 
         glPopMatrix();
-
+	
+	if(((LookX>=485) && (LookX<=510)) && ((LookZ >= 185)&&(LookZ<=210))){
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// limpa os pixels da tela
+		
+        	glLoadIdentity();// Carrega a identidade
+		glPushMatrix();
+        
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_verde);
+		glutSolidCube(TAM_BLOCO);
+		glPopMatrix();		
+		
+	}
 
 
         for(x=0; x < 26; x++)
         {
             for(z=0; z < 26; z++)
             {
-                if(mapa[x][z]) //tem um bloco
+                if(mapa[x][z]) //Verifica se há bloco:
                 {
                     x_mun = x * TAM_BLOCO;
                     z_mun = z * TAM_BLOCO;
@@ -166,8 +178,9 @@ void display(void)
 
                     int casa = mapa[x][z];
 
+		// Rasterizar uma bola na(s) posição(ões) 3 explícitas na matriz:
                     if(casa==3)
-                    {
+                    {	
                         if(wire) glutWireSphere(10.0, 30,30);
                         else glutSolidSphere(10.0,30,30);
                     }else{
@@ -182,6 +195,7 @@ void display(void)
             }//for
         }//for
 
+	
         glutSwapBuffers();
         break;
     case 2:
@@ -224,11 +238,6 @@ void Keyboard_Function(unsigned char key, int x, int y)
         inicia=1;
         glutPostRedisplay();
         break;
-    case 13:
-	inicia=1;
-	contador=1;
-	glutPostRedisplay();
-	break;	
 
     }
 
@@ -333,6 +342,12 @@ void Inicializa(void)
 
 // inicializa numeros aleatorios
     srand(GetTickCount());
+    /*
+     //posicao inicial da esfera
+    g_esfera.x_pos = 3 * TAM_BLOCO;
+    g_esfera.z_pos = TAM_BLOCO;
+    g_esfera.dir = LESTE;
+    */
 }
 
 //---------------------------------------------------------------
